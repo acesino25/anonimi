@@ -1,3 +1,23 @@
+This project is written on bases of Anse. Special thanks for the team to create it.
+Everythin used as bases in this new project will remain under MIT license.
+While new features listed will be under GNU license.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ![Banner](https://user-images.githubusercontent.com/1998168/235366625-e615e68d-592c-4f18-9c9f-1e5cd1778557.png)
 
 # Anse
