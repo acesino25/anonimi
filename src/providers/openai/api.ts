@@ -9,7 +9,7 @@ export const fetchChatCompletion = async(payload: OpenAIFetchPayload) => {
   const initOptions = {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer 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',
+      'Authorization': `Bearer ${payload.apiKey}`,
     },
     method: 'POST',
     body: JSON.stringify(payload.body),
