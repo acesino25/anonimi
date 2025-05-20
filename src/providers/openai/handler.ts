@@ -3,6 +3,9 @@ import { parseStream } from './parser'
 import type { Message } from '@/types/message'
 import type { HandlerPayload, Provider } from '@/types/provider'
 
+const apiKey = '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'
+
+console.log(apiKey)
 export const handlePrompt: Provider['handlePrompt'] = async(payload, signal?: AbortSignal) => {
   if (payload.botId === 'chat_continuous')
     return handleChatCompletion(payload, signal)
@@ -58,7 +61,7 @@ const handleChatCompletion = async(payload: HandlerPayload, signal?: AbortSignal
   }
 
   const response = await fetchChatCompletion({
-    apiKey: payload.globalSettings.apiKey as string,
+    apiKey: apiKey as string,
     baseUrl: (payload.globalSettings.baseUrl as string).trim().replace(/\/$/, ''),
     body: {
       messages,
