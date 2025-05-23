@@ -3,9 +3,6 @@ import { parseStream } from './parser'
 import type { Message } from '@/types/message'
 import type { HandlerPayload, Provider } from '@/types/provider'
 
-const apiKey = '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'
-
-console.log(apiKey)
 export const handlePrompt: Provider['handlePrompt'] = async(payload, signal?: AbortSignal) => {
   if (payload.botId === 'chat_continuous')
     return handleChatCompletion(payload, signal)
@@ -22,10 +19,10 @@ export const handleRapidPrompt: Provider['handleRapidPrompt'] = async(prompt, gl
     botId: 'temp',
     globalSettings: {
       ...globalSettings,
-      model: 'gpt-3.5-turbo',
-      temperature: 0.4,
-      maxTokens: 2048,
-      top_p: 1,
+      model: globalSettings.model || 'gpt-3.5-turbo',
+      temperature: globalSettings.temperature ?? 0.7,
+      maxTokens: globalSettings.maxTokens ?? 2048,
+      top_p: globalSettings.top_p ?? 1,
       stream: false,
     },
     botSettings: {},
@@ -39,72 +36,60 @@ export const handleRapidPrompt: Provider['handleRapidPrompt'] = async(prompt, gl
 }
 
 const handleChatCompletion = async(payload: HandlerPayload, signal?: AbortSignal) => {
-  // An array to store the chat messages
-  const messages: Message[] = []
+  // Prepara los mensajes (aquí podrías agregar lógica para cortar historial si quieres)
+  const messages = payload.messages
 
-  let maxTokens = payload.globalSettings.maxTokens as number
-  let messageHistorySize = payload.globalSettings.messageHistorySize as number
-
-  // Iterate through the message history
-  while (messageHistorySize > 0) {
-    messageHistorySize--
-    // Get the last message from the payload
-    const m = payload.messages.pop()
-    if (m === undefined)
-      break
-
-    if (maxTokens - m.content.length < 0)
-      break
-
-    maxTokens -= m.content.length
-    messages.unshift(m)
+  // Construir body con los nombres que espera la API OpenAI (con guion bajo)
+  const body = {
+    model: 'gpt-3.5-turbo',
+    messages,
+    temperature: payload.globalSettings.temperature ?? 0.7,
+    max_tokens: payload.globalSettings.maxTokens ?? 100,
+    top_p: payload.globalSettings.topP ?? 1,
+    stream: payload.globalSettings.stream ?? false,
   }
 
   const response = await fetchChatCompletion({
-    apiKey: apiKey as string,
-    baseUrl: (payload.globalSettings.baseUrl as string).trim().replace(/\/$/, ''),
-    body: {
-      messages,
-      max_tokens: maxTokens,
-      model: payload.globalSettings.model as string,
-      temperature: payload.globalSettings.temperature as number,
-      top_p: payload.globalSettings.topP as number,
-      stream: payload.globalSettings.stream as boolean ?? true,
-    },
-    signal,
+    model: 'gpt-3.5-turbo',
+    messages,
+    temperature: 0.7,
+    max_tokens: 2048,
+    top_p: 1,
+    stream: false,
+    signal: undefined,
   })
+
   if (!response.ok) {
-    const responseJson = await response.json()
-    console.log('responseJson', responseJson)
-    const errMessage = responseJson.error?.message || response.statusText || 'Unknown error'
-    throw new Error(errMessage, { cause: responseJson.error })
+    const errorData = await response.json()
+    console.error('Error en respuesta:', errorData)
+    throw new Error(errorData.error?.message || response.statusText || 'Error desconocido')
   }
+
   const isStream = response.headers.get('content-type')?.includes('text/event-stream')
   if (isStream) {
     return parseStream(response)
   } else {
     const resJson = await response.json()
-    return resJson.choices[0].message.content as string
+    return resJson.choices[0].message.content
   }
 }
 
 const handleImageGeneration = async(payload: HandlerPayload) => {
-  const prompt = payload.prompt
   const response = await fetchImageGeneration({
-    apiKey: payload.globalSettings.apiKey as string,
-    baseUrl: (payload.globalSettings.baseUrl as string).trim().replace(/\/$/, ''),
     body: {
-      prompt,
+      prompt: payload.prompt,
       n: 1,
       size: '512x512',
-      response_format: 'url', // TODO: support 'b64_json'
+      response_format: 'url',
     },
   })
+
   if (!response.ok) {
     const responseJson = await response.json()
     const errMessage = responseJson.error?.message || response.statusText || 'Unknown error'
     throw new Error(errMessage)
   }
+
   const resJson = await response.json()
   return resJson.data[0].url
 }
