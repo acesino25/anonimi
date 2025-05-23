@@ -49,8 +49,6 @@ const handleChatCompletion = async(payload: HandlerPayload, signal?: AbortSignal
     stream: payload.globalSettings.stream ?? false,
   }
 
-  console.log('Payload enviado al backend:', JSON.stringify(body, null, 2))
-
   const response = await fetchChatCompletion({
     model: 'gpt-3.5-turbo',
     messages,

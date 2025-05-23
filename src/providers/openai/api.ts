@@ -11,7 +11,7 @@ export interface OpenAIFetchPayload {
 export const fetchChatCompletion = async(payload: OpenAIFetchPayload) => {
   const { signal, ...bodyPayload } = payload
 
-  const response = await fetch('http://localhost:5000/chat', {
+  const response = await fetch('https://anonimi-backend-678065225372.southamerica-west1.run.app/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export const fetchChatCompletion = async(payload: OpenAIFetchPayload) => {
 export const fetchImageGeneration = async(payload: OpenAIFetchPayload) => {
   const { signal, ...bodyPayload } = payload
 
-  return fetch('http://localhost:5000/image', {
+  return fetch('https://anonimi-backend-678065225372.southamerica-west1.run.app/image', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
